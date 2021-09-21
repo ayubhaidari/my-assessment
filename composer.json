@@ -1,0 +1,8 @@
+{
+    "require": {
+        "backpack/crud": "4.1.*"
+    },
+    "require-dev": {
+        "backpack/generators": "^3.1"
+    }
+}
