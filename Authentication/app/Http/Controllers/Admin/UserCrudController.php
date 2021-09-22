@@ -20,7 +20,6 @@ class UserCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\BulkDeleteOperation;
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -31,18 +30,29 @@ class UserCrudController extends CrudController
     {
         CRUD::setModel(\App\Models\User::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/user');
-        CRUD::setEntityNameStrings('developer', 'developers');
+        CRUD::setEntityNameStrings('user', 'Users');
         $this->crud->allowAccess(['delete']);
 
         $this->crud->addFilter([
             'type'  => 'text',
-            'name'  => 'first_name',
-            'label' => 'First Name',
+            'name'  => 'name',
+            'label' => 'Name',
           ],
           false,
           function($value) { // if the filter is active
-            $this->crud->addClause('where', 'first_name', 'LIKE', "%$value%");
+            $this->crud->addClause('where', 'name', 'LIKE', "%$value%");
           });
+          $this->crud->addFilter([ // daterange filter
+            'type' => 'date_range',
+            'name' => 'created_at',
+            'label'=> 'Date range'
+            ],
+            false,
+            function($value) { // if the filter is active, apply these constraints
+                $dates = json_decode($value);
+                $this->crud->addClause('where', 'created_at', '>=', $dates->from);
+                $this->crud->addClause('where', 'created_at', '<=', $dates->to . ' 23:59:59');
+            });
     }
 
     /**
@@ -54,38 +64,19 @@ class UserCrudController extends CrudController
     protected function setupListOperation()
     {
         $this->crud->addColumn([
-            'label' => "First Name",
-            'name' => "first_name",
-            'type' => 'text',
-        ]);
-        $this->crud->addColumn([
-            'label' => "Profile Image",
-            'name' => "image",
-            'type' => 'image',
-            'crop' => true, // set to true to allow cropping, false to disable
-            'aspect_ratio' => 1, // omit or set to 0 to allow any aspect ratio
-            // 'disk'      => 's3_bucket', // in case you need to show images from a different disk
-            // 'prefix'    => 'uploads/images/profile_pictures/' // in case your db value is only the file name (no path), you can use this to prepend your path to the image src (in HTML), before it's shown to the user;
-        ]);
-        // $this->crud->addColumn([
-        //     'label' => "Last Name",
-        //     'name' => "last_name",
-        //     'type' => 'text',
-        // ]);
-        $this->crud->addColumn([
-            'label' => "Phone",
-            'name' => "phone",
-            'type' => 'text',
-        ]);
-        $this->crud->addColumn([
-            'label' => "Address",
-            'name' => "address",
+            'label' => "Name",
+            'name' => "name",
             'type' => 'text',
         ]);
         $this->crud->addColumn([
             'label' => "Email",
             'name' => "email",
             'type' => 'text',
+        ]);
+        $this->crud->addColumn([
+            'label' => "Date Joined",
+            'name' => "created_at",
+            'type' => 'date',
         ]);
         // CRUD::column('password');
 
@@ -107,25 +98,9 @@ class UserCrudController extends CrudController
         CRUD::setValidation(UserRequest::class);
 
         // CRUD::field('name');
-       
         $this->crud->addField([
-            'label' => "First Name",
-            'name' => "first_name",
-            'type' => 'text',
-        ]);
-        $this->crud->addField([
-            'label' => "Last Name",
-            'name' => "last_name",
-            'type' => 'text',
-        ]);
-        $this->crud->addField([
-            'label' => "Phone",
-            'name' => "phone",
-            'type' => 'text',
-        ]);
-        $this->crud->addField([
-            'label' => "Address",
-            'name' => "address",
+            'label' => "Name",
+            'name' => "name",
             'type' => 'text',
         ]);
         $this->crud->addField([
@@ -134,18 +109,9 @@ class UserCrudController extends CrudController
             'type' => 'text',
         ]);
         $this->crud->addField([
-            'label' => "Password",
-            'name' => "password",
-            'type' => 'password',
-        ]);
-        $this->crud->addField([
-            'label' => "Profile Image",
-            'name' => "image",
-            'type' => 'image',
-            'crop' => true, // set to true to allow cropping, false to disable
-            'aspect_ratio' => 1, // omit or set to 0 to allow any aspect ratio
-            // 'disk'      => 's3_bucket', // in case you need to show images from a different disk
-            // 'prefix'    => 'uploads/images/profile_pictures/' // in case your db value is only the file name (no path), you can use this to prepend your path to the image src (in HTML), before it's shown to the user;
+            'label' => "Date Joined",
+            'name' => "created_at",
+            'type' => 'date',
         ]);
 
         /**
@@ -169,38 +135,19 @@ class UserCrudController extends CrudController
     {
         $this->crud->set('show.setFromDb', false);
             $this->crud->addColumn([
-                'label' => "First Name",
-                'name' => "first_name",
-                'type' => 'text',
-            ]);
-            $this->crud->addColumn([
-                'label' => "Profile Image",
-                'name' => "image",
-                'type' => 'image',
-                'crop' => true, // set to true to allow cropping, false to disable
-                'aspect_ratio' => 1, // omit or set to 0 to allow any aspect ratio
-                // 'disk'      => 's3_bucket', // in case you need to show images from a different disk
-                // 'prefix'    => 'uploads/images/profile_pictures/' // in case your db value is only the file name (no path), you can use this to prepend your path to the image src (in HTML), before it's shown to the user;
-            ]);
-            $this->crud->addColumn([
-                'label' => "Last Name",
-                'name' => "last_name",
-                'type' => 'text',
-            ]);
-            $this->crud->addColumn([
-                'label' => "Phone",
-                'name' => "phone",
-                'type' => 'text',
-            ]);
-            $this->crud->addColumn([
-                'label' => "Address",
-                'name' => "address",
+                'label' => "Name",
+                'name' => "name",
                 'type' => 'text',
             ]);
             $this->crud->addColumn([
                 'label' => "Email",
                 'name' => "email",
                 'type' => 'text',
+            ]);
+            $this->crud->addColumn([
+                'label' => "Date Joined",
+                'name' => "created_at",
+                'type' => 'date',
             ]);
             // CRUD::column('password');
     
